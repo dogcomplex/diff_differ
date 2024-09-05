@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import json
 from config import *
 from diff_methods import METHOD_DICT
 from image_utils import verify_recreation, analyze_high_mse_frames
@@ -54,17 +55,40 @@ def recreate_screenshots(screenshots_folder, delta_folder, recreated_folder, met
 def process_screenshots():
     print("===== ENTERING process_screenshots FUNCTION =====")
     try:
+        cache_file = 'analysis_cache.json'
+        if os.path.exists(cache_file):
+            with open(cache_file, 'r') as f:
+                cache = json.load(f)
+        else:
+            cache = {}
+
         generate_diffs(SCREENSHOTS_FOLDER, DIFFS_FOLDER)
         
-        for method_name in METHOD_DICT.keys():
-            print(f"\nTesting {method_name} method:")
+        for method_name, method in METHOD_DICT.items():
+            print(f"\nProcessing {method_name} method:")
             delta_folder = os.path.join(DIFFS_FOLDER, f"delta_{method_name}")
             recreated_folder = os.path.join(RECREATIONS_FOLDER, method_name)
+            
             recreate_screenshots(SCREENSHOTS_FOLDER, delta_folder, recreated_folder, method_name)
-            verify_recreation(SCREENSHOTS_FOLDER, recreated_folder)
+            
+            if method.config['analysis'] == 'skip' and method_name in cache:
+                print(f"Skipping analysis for {method_name} (using cached results)")
+                continue
+            
+            print(f"Verifying recreation for {method_name} method:")
+            verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder)
             
             print(f"\nAnalyzing high MSE frames for {method_name} method:")
-            analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder)
+            high_mse_analysis = analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder)
+            
+            cache[method_name] = {
+                'verification': verification_results,
+                'high_mse_analysis': high_mse_analysis
+            }
+        
+        with open(cache_file, 'w') as f:
+            json.dump(cache, f)
+
     except Exception as e:
         print(f"===== ERROR IN process_screenshots: {str(e)} =====")
     print("===== EXITING process_screenshots FUNCTION =====")

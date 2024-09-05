@@ -23,9 +23,3 @@ class CombinedMethod(BaseDiffMethod):
     def name(self):
         return 'combined'
 
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }

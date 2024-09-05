@@ -28,12 +28,6 @@ class SSIMMethodBase(BaseDiffMethod):
     def name(self):
         return f'ssim_b{self.beta}_t{self.threshold}'
 
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }
 
 
 class SSIMMethod1(SSIMMethodBase):

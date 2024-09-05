@@ -19,5 +19,6 @@ class BaseDiffMethod(ABC):
     def config(self):
         return {
             'diff': 'skip',
-            'recreation': 'skip'
+            'recreation': 'skip',
+            'analysis': 'skip'  # New configuration option
         }

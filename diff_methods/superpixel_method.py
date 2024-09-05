@@ -42,10 +42,3 @@ class SuperpixelMethod(BaseDiffMethod):
     @property
     def name(self):
         return 'superpixel'
-
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }

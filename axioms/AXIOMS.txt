@@ -317,8 +317,12 @@ Special tokens:
 
 =====================================================================
 # above was a "perfected" human-made set of rules after analyzing the program, looking for what an eventual system might approximate
-# below is a ground-up attempt at discovery, using only input data ("64x64 images" "x3"?) and inference from that
+
+# below is a ground-up attempt at discovery (human simulated), using only input data ("64x64 images") and inference from that
 # where applicable we call non-axiom programs (e.g. ocr) to get data
+
+# Below is an attempted "blind world model building" of the following video:
+# https://www.youtube.com/watch?v=2bALHna35os
 
 🎬 => 📷 ⏰               # start with a picture and knowledge of time
 📷 <=> 📷💻(❔) 📷⌨(❔)         # split image into screen and interface (LMM, detect sections)

@@ -15,10 +15,4 @@ class BlendDiffMethod(BaseDiffMethod):
     @property
     def name(self):
         return f'blend_diff_a{self.alpha}'
-
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }
+    

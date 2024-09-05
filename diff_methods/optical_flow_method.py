@@ -36,9 +36,3 @@ class OpticalFlowMethod(BaseDiffMethod):
     def name(self):
         return 'optical_flow'
 
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }

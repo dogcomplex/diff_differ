@@ -45,9 +45,3 @@ class MembraneMethod(BaseDiffMethod):
     def name(self):
         return 'membrane'
 
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }

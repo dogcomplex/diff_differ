@@ -49,6 +49,14 @@ def verify_recreation(screenshots_folder, recreated_folder):
     
     print("===== EXITING verify_recreation FUNCTION =====")
 
+    results = {
+        'avg_mse': avg_mse,
+        'avg_ssim': avg_ssim,
+        'perfect_matches': perfect_matches,
+        'total_comparisons': valid_comparisons
+    }
+    return results
+
 def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500):
     print("===== ENTERING analyze_high_mse_frames FUNCTION =====")
     screenshots = sorted([f for f in os.listdir(screenshots_folder) if f.endswith('.png')])
@@ -85,3 +93,10 @@ def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500)
             print(f"  {color} channel changes: {channel_changed:.2f}%")
     
     print("===== EXITING analyze_high_mse_frames FUNCTION =====")
+
+    results = {
+        'high_mse_count': len(high_mse_frames),
+        'threshold': threshold,
+        'detailed_analysis': high_mse_frames[:10]
+    }
+    return results

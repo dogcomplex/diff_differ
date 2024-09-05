@@ -55,9 +55,3 @@ class FeatureBasedMethod(BaseDiffMethod):
     def name(self):
         return 'feature_based'
 
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }

@@ -18,10 +18,3 @@ class YCbCrMethod(BaseDiffMethod):
     @property
     def name(self):
         return 'ycbcr'
-
-    @property
-    def config(self):
-        return {
-            'diff': 'skip',
-            'recreation': 'skip'
-        }
