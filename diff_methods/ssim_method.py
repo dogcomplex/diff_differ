@@ -2,13 +2,16 @@ import cv2
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from .base_method import BaseDiffMethod
-from config import SSIM_BETA, SSIM_THRESHOLD
 
-class SSIMMethod(BaseDiffMethod):
+class SSIMMethodBase(BaseDiffMethod):
+    def __init__(self, beta, threshold):
+        self.beta = beta
+        self.threshold = threshold
+
     def generate_diff(self, img1, img2):
         ssim_map = ssim(img1, img2, win_size=3, channel_axis=2, full=True)[1]
-        ssim_diff = np.power(1 - ssim_map, SSIM_BETA)
-        ssim_diff[ssim_diff < SSIM_THRESHOLD] = 0
+        ssim_diff = np.power(1 - ssim_map, self.beta)
+        ssim_diff[ssim_diff < self.threshold] = 0
         ssim_diff = (ssim_diff * 255).clip(0, 255).astype(np.uint8)
         
         if ssim_diff.ndim == 2:
@@ -17,13 +20,13 @@ class SSIMMethod(BaseDiffMethod):
 
     def recreate_screenshot(self, earlier_screenshot, delta, next_screenshot):
         ssim_map = delta.astype(np.float32) / 255.0
-        alpha = np.power(ssim_map, 0.25)
+        alpha = np.power(ssim_map, 1/self.beta)
         recreated = ((1 - alpha) * earlier_screenshot + alpha * next_screenshot).clip(0, 255).astype(np.uint8)
         return recreated
 
     @property
     def name(self):
-        return 'ssim'
+        return f'ssim_b{self.beta}_t{self.threshold}'
 
     @property
     def config(self):
@@ -31,3 +34,11 @@ class SSIMMethod(BaseDiffMethod):
             'diff': 'overwrite',
             'recreation': 'overwrite'
         }
+
+class SSIMMethod1(SSIMMethodBase):
+    def __init__(self):
+        super().__init__(beta=4.0, threshold=0.2)
+
+class SSIMMethod2(SSIMMethodBase):
+    def __init__(self):
+        super().__init__(beta=3.0, threshold=0.15)
