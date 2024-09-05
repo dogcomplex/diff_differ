@@ -10,9 +10,23 @@ def generate_diffs(screenshots_folder, diffs_folder):
     print("===== ENTERING generate_diffs FUNCTION =====")
     screenshots = sorted([f for f in os.listdir(screenshots_folder) if f.endswith('.png')])
     
+    if len(screenshots) < 2:
+        print("Not enough screenshots to generate diffs.")
+        return
+
+    last_screenshot_pair = (screenshots[-2], screenshots[-1])
+    
     for method_name, method in METHOD_DICT.items():
         delta_folder = os.path.join(diffs_folder, f"delta_{method_name}")
         os.makedirs(delta_folder, exist_ok=True)
+        
+        # Check if the last diff file exists
+        last_diff_filename = f"diff_{method_name}_{len(screenshots)-2:04d}_{len(screenshots)-1:04d}.png"
+        last_diff_path = os.path.join(delta_folder, last_diff_filename)
+        
+        if os.path.exists(last_diff_path) and method.config['diff'] != 'overwrite':
+            print(f"Skipping diff generation for {method_name} (last diff file exists)")
+            continue
         
         print(f"Now generating diffs for: {method_name}")
         
@@ -39,6 +53,14 @@ def recreate_screenshots(screenshots_folder, delta_folder, recreated_folder, met
     delta_files = sorted([f for f in os.listdir(delta_folder) if f.endswith('.png')])
     
     os.makedirs(recreated_folder, exist_ok=True)
+    
+    # Check if the last recreated file exists
+    last_recreated_filename = f"recreated_{len(delta_files):04d}.png"
+    last_recreated_path = os.path.join(recreated_folder, last_recreated_filename)
+    
+    if os.path.exists(last_recreated_path) and method.config['recreation'] != 'overwrite':
+        print(f"Skipping recreation for {method_name} (last recreated file exists)")
+        return
     
     for i in range(len(delta_files)):
         earlier_screenshot = cv2.imread(os.path.join(screenshots_folder, screenshots[i]))

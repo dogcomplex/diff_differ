@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from skimage.segmentation import slic
-from skimage.future import graph
 from .base_method import BaseDiffMethod
 
 class AdaptiveRegionDiffMethod(BaseDiffMethod):

@@ -8,6 +8,7 @@ from .optical_flow_method import OpticalFlowMethod
 from .blend_diff_method import BlendDiffMethod
 from .feature_based_method import FeatureBasedMethod
 from .grid_diff_method import GridDiffMethod
+from .adaptive_region_diff_method import AdaptiveRegionDiffMethod
 
 DIFF_METHODS = [
     PixelDiffMethod(),
@@ -21,8 +22,9 @@ DIFF_METHODS = [
     OpticalFlowMethod(),
     BlendDiffMethod(alpha=0.5),
     FeatureBasedMethod(),
-    GridDiffMethod(grid_size=9, threshold=10, top_border=1, left_border=1),
-    GridDiffMethod(grid_size=9, threshold=10, top_border=1, left_border=1, bottom_border=1, right_border=1)
+    GridDiffMethod(grid_size=9, threshold=10, top_border=0, left_border=0),
+    GridDiffMethod(grid_size=9, threshold=10, top_border=3, left_border=3, bottom_border=2, right_border=2),
+    AdaptiveRegionDiffMethod(),
 ]
 
 METHOD_DICT = {method.name: method for method in DIFF_METHODS}
