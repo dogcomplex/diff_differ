@@ -57,8 +57,12 @@ def process_screenshots():
     try:
         cache_file = 'analysis_cache.json'
         if os.path.exists(cache_file):
-            with open(cache_file, 'r') as f:
-                cache = json.load(f)
+            try:
+                with open(cache_file, 'r') as f:
+                    cache = json.load(f)
+            except json.JSONDecodeError:
+                print(f"Warning: {cache_file} contains invalid JSON. Starting with an empty cache.")
+                cache = {}
         else:
             cache = {}
 

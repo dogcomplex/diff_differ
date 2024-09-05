@@ -15,10 +15,9 @@ class BaseDiffMethod(ABC):
         pass
 
     @property
-    @abstractmethod
     def config(self):
         return {
             'diff': 'skip',
             'recreation': 'skip',
-            'analysis': 'skip'  # New configuration option
+            'analysis': 'skip'
         }

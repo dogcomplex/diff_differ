@@ -21,7 +21,8 @@ DIFF_METHODS = [
     OpticalFlowMethod(),
     BlendDiffMethod(alpha=0.5),
     FeatureBasedMethod(),
-    GridDiffMethod(grid_size=9, threshold=10)
+    GridDiffMethod(grid_size=9, threshold=10, top_border=1, left_border=1),
+    GridDiffMethod(grid_size=9, threshold=10, top_border=1, left_border=1, bottom_border=1, right_border=1)
 ]
 
 METHOD_DICT = {method.name: method for method in DIFF_METHODS}
