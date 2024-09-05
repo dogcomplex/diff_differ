@@ -1,0 +1,386 @@
+# AXIOM TYPES
+# AKA MORPHISMS 
+# AKA the different unique types of axioms that can be created in the system
+
+# The theory/plan is that these ultimately all compile-down to the simplest axiom type, 
+#   with extra steps of how that is turned into the more advanced formulas
+
+🎬 => 🏁
+"start to finish"
+global_state => global_state'
+# BASE AXIOM VERSION: (DEAD-SIMPLE, MONOSTATE GRAPH)
+# each of these is represented as a hashed string (e.g. global_state = somehash12345) 
+# and the global_state' is the next state (e.g. global_state = somehash12346)
+# System execution could be represented as a series of these axioms, or as just the final summarized step from start to finish
+# This is equivalent to an execution graph, showing any particular global state as a node and the transitions between them as edges
+
+🎬 => 🌞✔ 🌧✔ 🌈❔
+🌞✔ 🌧✔ 🌈❔ => 🌞✔ 🌧✔ 🌈✔
+🌞✔ 🌧✔ 🌈✔ => 🏁
+"if it's sunny and rainy, then there's a rainbow"
+global_state_sub_token_1 ... global_state_sub_token_N => global_state_sub_token_1 ... global_state_sub_token_N
+# BASE AXIOM VERSION: (AXIOM MATRIX)
+# Instead of using a monostate, we can use a syntactic sugar to split the global state representation into multiple component tokens
+# The global state is then therefore the combination of the state of all of these tokens
+# Transitions are just matrix operations of the current validity state of the tokens (❔ if undefined/invalid, ✔ if valid)
+# NOTE: tokens are commutable and interchangeable, so the order of the tokens doesn't matter (one less thing to worry about)
+
+🎬 => 🌞 🌧
+🌞 🌧 => 🌞 🌧 🌈
+🌞 🌧 🌈 => 🏁
+"if it's sunny and rainy, then there's a rainbow"
+global_state_sub_token_1 global_state_sub_token_3 => global_state_sub_token_1234
+# BASE AXIOM VERSION: (SPARSE AXIOM MATRICIES)
+# By convention, we can hide tokens before they're valid, showing just a sparse matrix in rules
+# this also allows us to write rules with limited scope to just the relevant axioms
+🎬 => 🥬 🍅
+🥬 🍅 => 🥬 🍅 🔪🍅 🔪🥬
+🔪🍅 🔪🥬 => 🔪🍅 🔪🥬 🥗
+🥗 => 🏁
+"if you have lettuce and tomato, you can chop them up.  If you have chopped lettuce and tomato, you can make a salad" 
+# same as above SPARSE AXIOM MATRICIES, but with a different example showing one frustration:
+# what if some transition functions are irreversible?  e.g. you can't un-chop a salad
+# when representing time-based stuff like this, we can either do the above and just remember 
+# that e.g. a tomato that has also been chopped 🍅 🔪🍅 is a different state than just a tomato before it's chopped 🍅
+# this relies on things like:
+🍅 🔪🍅 => "a tomato was chopped"
+
+# SUMMARY SO FAR:
+# ... everything up til now has been a simple global state producing immutable tokens representing axioms
+# Each one of these emojis is interchangeable with a hashed ID of an axiom, and they either are valid (confirmed) or not (invalid/unconfirmed)
+# Errors in this context would be done as new Error axioms that are made (as valid tokens) if the overall system logic is violated
+# e.g. 🥗 can not be valid if 🍅 is not valid (a salad must have a tomato)
+# these are all immutable once reached, and the system is just a series of these true statements
+
+
+# MUTABILITY AND QUANTITIES
+# ====================================================================================================================================
+# ALTERNATIVE SYNTAX: (SIMULATING MUTABILITY WITH PRODUCTION RULES)
+# Verbose:
+🎬 => 🥬1 🍅1 🥗0
+🥬1 🍅1 🥗0 => 🥬0 🍅0 🥗1
+🥬0 🍅0 🥗1 => 🏁
+"use up a lettuce and tomato to make a salad"
+# PRODUCTION RULES AXIOMS: (EXISTENCE-BASED TOKENS, VERBOSE MATRIX VIEW)
+# We can instead represent the current state as a series of tokens with a quantity (for now just 0 or 1),
+# with invalid, nonexistent or unchecked states being represented as 0.
+# This is an abstraction of the previous system, as we automatically apply existence representation to the original tokens
+# you can always map to the old system by representing:
+#  - any 🍅0 with two tokens 🍅 ("tomato exists") 🔪🍅 ("tomato is used (chopped)")   i.e. 🍅0 <=> 🍅 🔪🍅
+#  - any 🍅1 with just one token 🍅 ("tomato exists") with 🔪🍅 not present ("tomato is not used (chopped)")   i.e. 🍅1 <=> 🍅
+# but we want to be able to represent this more concisely most of the time, so we simulate mutability.
+# here's the more concise way:
+🎬 => 🥬 🍅
+🥬 🍅 => 🥗
+🥗 => 🏁
+# PRODUCTION RULES AXIOMS: (QUANTITY-BASED TOKENS, CONCISE)
+# Here we just do the same trick, dropping out the 0s and 1s and just showing the tokens that are present or not
+
+# ALTERNATIVE SYNTAX: (SIMULATING QUANTITY WITH PRODUCTION RULES)
+# Using the same trick, we can represent quantities of tokens:
+🎬 => 🥬3 🍅2
+🥬3 🍅2 => 🥗
+🥗 => 🏁
+"if you have 3 lettuces and 2 tomatoes, you can make a salad"
+# PRODUCTION RULES AXIOMS: (QUANTITY-BASED TOKENS, CONCISE)
+# These can be mapped back to boring token axioms the same way, e.g.
+🥬3 <=> 🥬one 🥬two 🥬three  #(all of 🥬one 🥬two 🥬three existence checks need to be valid to confirm there are 3 🥬)
+🥬2 <=> 🥬one 🥬two 🥬three 🔪🥬one  #(all of 🥬one 🥬two 🥬three existence checks need to be valid, and the one confirmed 🔪🥬 usage existence, to confirm there are 2 left)
+🥬1 <=> 🥬one 🥬two 🥬three 🔪🥬one 🔪🥬two #(you get the picture)
+🥬0 <=> 🥬one 🥬two 🥬three 🔪🥬one 🔪🥬two 🔪🥬three
+(We use "🥬one" to make it really clear this is just a hashed ID)
+# there are a lot of ways to do the above with immutable valid/invalid tokens, but they're all verbose like this
+# the concise version is just a way to make it easier to read and write, acting as a catch-all for the more verbose version(s)
+# also NOTE: we just assume quantity = 1 as a default if a token is present 
+
+# QUANTITIES MATH:
+# NOTE: we aren't doing any advanced math here beyond what we mark in a rule explicitly
+# but we extend the convention to be a little more powerful by requiring only that the minimum number of tokens are present
+# e.g. we can do some trivial math:
+🎬 => 🥬5 🍅6
+🥬3 🍅2 => 🥗
+🥗 => 🏁
+"you have 5 lettuces and 6 tomatoes.  you can use 3 lettuce and 2 tomatoes to make a salad"
+# if these ^ are the rules instead, we can still say the system is valid since 5 >= 3 and 6 >= 2.  
+# If we do that and manage quantities consistently, the ending quantities of 🥬 and 🍅 would be 🥬2 and 🍅4
+
+# FLOATING POINT MATH:
+# sure, why not?
+🎬 => 🥬5.5 🍅6.5
+🥬3.3 🍅2.2 => 🥗
+🥗 => 🏁
+
+# BACKWARDS COMPATIBILITY: (Simple existence checks without subtraction)
+# if we now want to do what we did in the old axioms, and e.g. make rules that don't affect quantities (they're just inference statements)
+# then we simply put the requirement on both sides of the production rule:
+🎬 => 🌞 🌧
+🌞 🌧 => 🌞 🌧 🌈
+🌞 🌧 🌈 => 🏁
+"if it's sunny and rainy, then there's a rainbow"
+# NOTE: it's also identical syntax as before!
+# these allow us to do IF statements which gate valid transitions based on the existence of tokens
+# think of these like catalysts - they enable the reaction but aren't consumed in the process
+
+
+# BRANCHING AND MULTIPLICITY: (Multiple valid transitions)
+# we've ignored this so far but it's a problem with every axiom system, and it's why we need rules representations in the first place
+# when there are multiple valid paths between two states, we need to be able to represent them all and validate them
+# proposed syntax:
+🎬 => 🌞 🌧
+🌞 🌧 => 🌞 🌧 🌈
+🌞 🌧 🌈 => 🏁
+🌞 🌧 => 🏁
+"if it's sunny and rainy, then there might or might-not be a rainbow"
+# or more concisely (removing redundant rules):
+🎬 => 🌞 🌧
+🌞 🌧 => 🌞 🌧 🌈
+🌞 🌧 => 🏁
+# By modifying the finish conditions, we've made it so the rainbow step is optional and may or may not happen.  Both would be valid paths, but neither one is necessary
+# e.g. walking just two edges: (🎬 => 🌞 🌧), (🌞 🌧 => 🏁)  OR all three  (🎬 => 🌞 🌧), (🌞 🌧 => 🌞 🌧 🌈), (🌞 🌧 => 🏁) are both valid paths to a complete system state
+# with this can of worms open, now we can represent really complex systems with multiple valid paths between states
+
+
+
+# ERROR CHECKING AND TESTING
+# note how we use 🌞 🌧 => 🏁 as a final system check test as a default here.  But we could have any rule we want.  
+# e.g. we could assume a system is valid unless an ⚠️ error token is generated
+🎬 => 🥬5 🍅6 🍌
+🥬3 🍅2 => 🥗
+🥬3 🍌 => ⚠️ # "dont make a banana salad"
+🥗 => 🏁
+
+
+# ZERO CHECKING AND NULL STATES  (A FEW WAYS TO DO THIS)
+# "but wait!" you say, "what if I want to represent a state where there are no tokens at all?"
+# e.g. 🌞 🌧0 🌈 => ⚠️ "if there's sun but no rain there shouldn't be a rainbow"
+# well, this is pretty a pretty valid ask, and it would be pretty fair to allow the above, but there are two ways to interpret this 
+# and it's highly debated by logicians in classical logic vs intuitionistic logic (https://abuseofnotation.github.io/category-theory-illustrated/05_logic/)
+# 1. classical logic: something either exists or it doesn't, and there's no in-between.  This aligns nicely with token quantities 0 or >0
+# 2. intuitionistic logic: knowing whether something exists or whether something definitely does not exist are two different things 
+#   (which can sometimes even conflict/overlap if they're imperfect checks), so they should both be separate tokens and checked individually
+# Since axioms are meant to frequently operate on loosely-defined tokens (vibes!), we try to go with the intuitionistic logic approach and explicitly use the not-exists token 🌧✖
+# as it's a much stronger claim than just saying 🌧0 (which might only be true at some points of the execution, before it's created!)
+🎬 => 🌞 🌧✖  # here, it's possible the initial state might have an observation of no rain
+🌞 🌧 => 🌞 🌧 🌈 # which would make this transition impossible
+🌞 🌧✖ 🌈 => ⚠️ # trying to conclude there's a rainbow should be impossible (no rain)
+# to be fair, we could still use 🌧0 if we wanted to, we just gotta be careful to be really explicit about what it's claiming... 
+# we could also avoid the use of non-existence checks and notation entirely by simply shaping the other rules to not require them:
+🎬 => 🌞  # no rain token is ever generated
+🌞 🌧 => 🌞 🌧 🌈 # which would make this transition impossible
+🌞 🌈 => ⚠️ # trying to conclude there's a rainbow should be impossible (implicitly, there's no rain)
+(but then, what if 🎬 => 🌞 🌧 was generated instead?  then the error check would be a false negative 🌞 🌈 => ⚠️)
+
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION: PRIORITY RULES ❗
+# we can also represent rules that have priority over others, e.g. if there are multiple valid paths between states, favor one over another
+# this would be the same as marking every other state as ⚠️ invalid if they're not the preferred path for certain conditions
+# NOTE: I'm not really a fan of this extension, but have found it necessary so far.   
+# It imposes an ordering on some sets of rules, which breaks the nice property of every path being equally valid
+# example syntax:
+❗ 🌱 💧3 => 🌳  # if a seedling has water, it will grow into a tree
+🌱 => 💀 # else it will die
+# note how if we didn't do it with a priority flag, it would be:
+🌱 💧3 => 🌳  # if a seedling has water, it could grow into a tree
+🌱 => 💀 # or it could just die
+# i.e. there's nothing to favor one state over the other, even if 💧3 is present.  "No order to the universe" indeed
+
+# Hypothesis: (still figuring this out):
+# if we use explicit existence / non-existence tokens, we can make rules that don't need priority flags:
+🌱 💧3 => 🌳 
+🌱 💧✖ => 💀 # here, we know there's no water definitively, so we know it will die.  Only one of these is possible
+# yet... what if there's just 💧2 ?  Then what?  It should still die!  But how to show that in rules?
+🌱 💧1 => 💀
+🌱 💧2 => 💀 # ?
+# okay, but what if there's 💧1.5 ...?
+# so it doesn't really work (yet?)
+
+# we COULD use error states though:
+🌱 💧3 => 🌳
+🌱 => 💀
+💀 💧3 => ⚠️ # "silly plant, why didn't you just drink your water?"
+# this effectively cuts-off all other paths where the plant doesn't use the water.
+# BUT, it still gets a little out of hand as you need to do this every time it would be silly not to use a rule
+# e.g. what if the plant neither drinks the water nor dies?  what if it just sits there?  how do we represent that?
+🌱 💧3 => ⚠️ # ?  But then there's an invalid state in the early operations!
+
+# at least ❗ cleanly says "this rule is required. if the conditions are met, you have to use it" 
+❗ 🌱 💧3 => 🌳  
+🌱 => 💀
+
+# Note: IF you like this syntax, then we just add increasing priority to make multiple if / then / else:
+❗2 🌱 💧3 🔥 => 💀 # as an example which takes precedence 
+❗ 🌱 💧3 => 🌳  
+🌱 => 💀
+
+# I'm fine with using priority IF it doesn't end up becoming an annoying addition to every rule. But it's a slippery slope
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION: NON-GLOBAL STATES - AKA SCOPES - AKA LISTENERS
+# any independent sub-state should be able to do these same operations on its own,
+# but if it's not a global state, then it still might need a way to listen to the global state (or other sub-states) and pass tokens back and forth
+# e.g. in a pixel-based snake game, we might want to setup a system where every pixel only knows its neighbors rather than rely on defining a global grid with x and y
+
+# SYNTAX PROPOSAL:
+# any token can be its own folder location with its own sub-tokens and rules
+e.g. ⬅ might represent the pixel to the left of you, and ➡ the pixel to the right
+# to see the contents of that pixel, you can access it with a rule:
+⬅(🐍) => 🐍  "the snake was in the pixel to your left, now it's in your pixel"
+# and to pass the snake to the right:
+🐍 => ➡(🐍)  "the snake was in your pixel, now it's in the pixel to your right"
+
+# these are just simple syntax tricks to represent an underlying system probably implemented in Python, but it's mostly elegant and seems to work
+# as an aside: you could represent the same thing by just prepending the location on every single token within a global state, e.g.:
+# which looks nice at first:
+⬅🐍 => 🐍
+🐍 => ➡🐍
+# but when you consider this needs to be done for every single pixel uniquely it gets uglier:
+⬅5⬇3🐍 => ⬅4⬇3🐍 #snake moving right from 5,3 to 4,3 
+⬅4⬇3🐍 => ⬅3⬇3🐍 # it becomes a lot of rules to compile to....
+# then do the same for EVERY token type * EVERY location.  Silly
+
+# perhaps better to just limit things and say "⬅ is your magic link to the left pixel", figure that out in code, and then have everything else be the same
+# the goal being here to be able to write a minimal set of generic rules that every pixel can operate with 
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION*: MULTIPLICATION
+# Note *: we can implement general multiplication with 5 rules, but expect inference to take many steps to enact it (adding one at a time) 
+# 
+# doing this according to a variable is trickier, but we can do it easily with constants in the rules:
+❗ 🍎 ✴ => 🍎✴44  # multiply by 44
+🍎✴ => 🍎 # after multiplication phase complete, restore original tokens
+# (attempted to do it with variables but it's tough)
+
+Goal:
+🥬X 🔪Y ✴ => ✴ 🥗(X*Y) # syntax
+🥬3 🔪2 ✴ => ✴ 🥗6 # chop 3 lettuce into 2 slices each produces 6 salad units
+Implementation:
+❗4 🔪✴ 🥬🔪 => 🔪✴ 🥬
+❗3 🔪✴ => 
+❗2 🥬 🔪 ✴ => ✴ 🥬🔪 🔪 🥗    # 🥬 🥗3 result
+❗ 🔪 => 🔪✴
+🥬 => 
+# shitty but does the job. end result 🥬3 🍌2 ✴ => ✴ 🥗6
+# walkthrough:
+❗2 🥬 🔪 ✴ => ✴ 🥬🔪 🔪 🥗    # chop one piece off each 🥬 and add to 🥗
+❗ 🔪 => 🔪✴ # when no unchopped 🥬 left, mark one 🔪 cleanup phase
+❗4 🔪✴ 🥬🔪 => 🔪✴ 🥬 # clean up, resetting the 🥬 ('back to the cutting board') 
+❗3 🔪✴ =>  # mark one 🔪 as complete (remove it)
+❗2 🥬 🔪 ✴ => ✴ 🥬🔪 🔪 🥗    # repeat til all 🔪 are complete
+...
+🥬 =>  # toss remnants
+
+# generalized double-check:
+🥬X 🔪 ✴ => ✴ 🥬🔪X 🔪 🥗X  # condensed to one step
+🥬X 🔪 ✴ => ✴ 🥬🔪X 🔪✴ 🥗X  # one step plus mark one 🔪 as cleanup phase
+🥬X 🔪 ✴ => ✴ 🥬X 🔪✴ 🥗X  # one step plus mark one 🔪 as cleanup phase plus reset 🥬
+🥬X 🔪 ✴ => ✴ 🥬 🥗X  # all above plus discard the 🔪
+🥬X 🔪Y ✴ => ✴ 🥗(X*Y)  # all above plus toss remnants. yep works
+
+
+
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION*: RANDOMNESS
+# Note *: doesnt actually need special extension, other than to set the initial seed 🎲
+# but it would benefit from that instead of pseudo-random generation
+
+# Since it would be nice to handle random behavior, we can do the following:
+❗ 🟡 🎲51 => 🎲51 🟡heads # heads if roll is 51-100
+🟡 🎲 => 🎲 🟡tails # tails if roll is 1-50
+🎬 => 🎲42  # set an initial seed roll (nothing special here, just assigning a quantity to 🎲)
+# pseudorandom generation: (Xn+1 = a*Xn + c mod m) linear congruential generator
+❗3 🎲101 => 🎲 # mod 100
+❗2 🎲⌛ 🎲 => 🎲⌛ 🎲✴ # multiplies all dice (constant)
+❗ 🎲⌛ => 🎲17 # when done, adds 17 to the result (constant)
+🎲✴ => 🎲3 # multiply each by 3 (constant) 
+# result: 42*3+17 = 143 mod 100 = 43
+# next result: 43*3+17 = 146 mod 100 = 46
+# next result: 46*3+17 = 155 mod 100 = 55
+# next result: 55*3+17 = 182 mod 100 = 82
+# next result: 82*3+17 = 263 mod 100 = 63
+# next result: 63*3+17 = 206 mod 100 = 6
+# next result: 6*3+17 = 35 mod 100 = 35
+# next result: 35*3+17 = 122 mod 100 = 22
+# next result: 22*3+17 = 83 mod 100 = 83
+# next result: 83*3+17 = 266 mod 100 = 66
+# next result: 66*3+17 = 215 mod 100 = 15
+# next result: 15*3+17 = 62 mod 100 = 62
+# next result: 62*3+17 = 203 mod 100 = 3
+# next result: 3*3+17 = 26 mod 100 = 26
+# next result: 26*3+17 = 95 mod 100 = 95
+# next result: 95*3+17 = 292 mod 100 = 92
+# next result: 92*3+17 = 283 mod 100 = 83
+# next result: 83*3+17 = 266 mod 100 = 66
+# next result: 66*3+17 = 215 mod 100 = 15
+# next result: 15*3+17 = 62 mod 100 = 62
+# next result: 62*3+17 = 203 mod 100 = 3
+# next result: 3*3+17 = 26 mod 100 = 26
+# not the best, but oh well its mostly randomish
+# now whenever you want to re-roll, just need to generate 🎲⌛:
+# e.g. (if attached to your system's clock)
+⏰ => ⏰ 🎲⌛
+
+🎲42 => 🎲 | 🎲2 | ... | 🎲100
+# we use an initial seed roll (🌱🎲) to produce a random number 🎲 between 1-100
+# then all other randomized logic can derive from that number
+# we still need a random source to do the determination of the initial seed (this could be provided on init), but it's set from that point forward
+
+🎬 => 🎲42.4 # note: may want to use floating points for constants etc
+
+
+
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION: RANDOM RANGES (DISCRETE)
+# this one is definitely an extension (syntactic sugar) but it can still be compiled down into (many) simpler rules
+# Note: floating points might need something else
+🌡️0-100:  
+   🎲 => 🎲 🌡️0 
+  ❗ 🎲2 => 🎲2 🌡️1
+   ... 
+  ❗100 🎲100 => 🎲100 🌡️100  #(note: the mod loop is at 🎲101)
+🌡️0-4:
+  🎲20 => 🎲20 🌡️0 
+  ❗ 🎲40 => 🎲40 🌡️1 
+  ❗2 🎲60 => 🎲60 🌡️2
+  ❗3 🎲80 => 🎲80 🌡️3
+  ❗4 🎲100 => 🎲100 🌡️4
+🌡️A-B:
+  ❗A 🎲(100*(A+1)/(B - A + 1)) => 🎲(100*(A+1)/(B - A + 1)) 🌡️A
+  ❗(A+1) 🎲(100*(A+2)/(B - A + 1)) => 🎲(100*(A+2)/(B - A + 1)) 🌡️(A+1)
+  ... 
+  ❗(B-1) 🎲(100*B/(B - A + 1)) => 🎲(100*B/(B - A + 1)) 🌡️(B-1)
+  ❗B 🎲(100*(B+1)/(B - A + 1)) => 🎲(100*(B+1)/(B - A + 1)) 🌡️B  
+
+
+# ====================================================================================================================================
+# SYNTAX EXTENSION: NAMED FUNCTIONS
+# For this to be complete, we should also be able to define and create functions inside others 
+# Best way to do this seems to be to accept that ALL tokens are just functions by default (identity functions)
+# and then we can assign certain tokens to be the named function tokens enabling additional transitions.
+🪓 => 🪓 # everything's an identity function by default
+🌳 => 🌳
+🪓 => (🌳 => 🤎3) # axe is usable as a function 
+🌳 🪓 => 🤎3  # applying it
+    # alternative: reusable function
+    🪓 => 🪓 (🌳 => 🤎3)  # 🪓 is now a function that takes a 🌳 and returns 🤎3 wood
+    🌳 🪓 => 🪓 🤎3   # now this is doable, preserving the 🪓 function to be reusable
+🌳🪓 => (🌳 🪓 => 🤎3)  # naming the treechop function
+# example system:
+🎬 => 
+  🌳3
+  🪓
+  (🪓 => 🪓 (🌳 => 🤎3))
+<=> 
+  (🌳 => 🌳)3 
+  (🪓 => 🪓)
+  (🪓 => 🪓 (🌳 => 🤎3))
+
+
+
+
+# ====================================================================================================================================
+# VARIABLES AND GENERALIZATION
+# of course, we could do the typical generalized programming stuff like variables and functions if we want to here
+

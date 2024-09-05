@@ -1,0 +1,420 @@
+Plain english list of game rules and insights on how the game Crafter works.  
+MUST all be backed up by reference to the latex source code
+
+- The game is played on a 2D grid of size 64x64
+  - SOURCE: \paragraph{Terrain generation}
+    "... The world leverages an underlying grid of $64\times64$ cells ..."
+  - AXIOMS: 🎬 => ⏹️↔️64 ⏹️↕️64
+
+- The game world is procedurally generated for each episode
+  - SOURCE: \paragraph{Terrain generation}
+    "A unique world is generated for every episode, shown in \cref{fig:maps}."
+  - AXIOMS: PENDING (requires randomization logic)
+
+- The world features various terrain types: grasslands, lakes, mountains, and caves
+  - SOURCE: sections/intro.tex
+    startLine: 6
+    endLine: 6
+  - AXIOMS: ⏹️ => 🟩 | 🟦 | ⬛ | ⬛
+
+- The player observes the world through pixel images, not directly through the grid
+  - SOURCE: \paragraph{Terrain generation}
+    "The world leverages an underlying grid of $64\times64$ cells but the agent only observes the world through pixel images."
+  - AXIOMS: PENDING (requires representation of pixel images)
+
+- The terrain features are determined by OpenSimplex noise
+  - SOURCE: \paragraph{Terrain generation}
+    "These are determined by OpenSimplex noise \cite{kurt2014opensimplex}, a form of locally smooth noise."
+  - AXIOMS: PENDING (requires implementation of OpenSimplex noise)
+
+- Objects appear with equal probability at specific locations within areas determined by noise
+  - SOURCE: \paragraph{Terrain generation}
+    "Within the areas determined by noise, objects appear with equal probability at any location, such as trees in forests and skeletons in caves."
+  - AXIOMS: PENDING (requires probabilistic placement logic)
+
+- The player must maintain levels of health, food, water, and rest
+  - SOURCE: \paragraph{Health and survival}
+    "The player has levels of health, food, water, and rest that it must prevent from reaching zero."
+  - AXIOMS: 
+    🧍 => 🧍 ❤️9 🍽️9 💧9 💤9
+    ❤️0 => 🏁
+
+- Food, water, and rest levels decrease over time
+  - SOURCE: \paragraph{Health and survival}
+    "The levels for food, water, and rest decrease over time"
+  - AXIOMS:
+    🧍 🍽️1 ⌛ => 🧍 🍽️0
+    🧍 💧1 ⌛ => 🧍 💧0
+    🧍 💤1 ⌛ => 🧍 💤0
+
+- The player can restore levels by drinking from lakes, eating cows or fruits, and sleeping
+  - SOURCE: \paragraph{Health and survival}
+    "and are restored by drinking from a lake, chasing cows or growing fruits to eat, and sleeping in places where monsters cannot attack."
+  - AXIOMS:
+    🧍 👣(🟦) => 🧍 💧9
+    🧍 🐄 => 🧍 🍽️9
+    🧍 🍎 => 🧍 🍽️9
+    🧍 💤0 👣(🟩) ⌛ => 🧍 💤9
+
+- The player loses health when food, water, or rest levels reach zero
+  - SOURCE: \paragraph{Health and survival}
+    "Once one of the three levels reaches zero, the player starts losing health points."
+  - AXIOMS:
+    🧍 ❤️1 🍽️0 ⌛ => 🧍 ❤️0
+    🧍 ❤️1 💧0 ⌛ => 🧍 ❤️0
+    🧍 ❤️1 💤0 ⌛ => 🧍 ❤️0
+
+- The player can lose health when attacked by monsters
+  - SOURCE: \paragraph{Health and survival}
+    "It can also lose health points when attacked by monsters."
+  - AXIOMS:
+    🧍 ❤️1 👣(☠️⚔️) => 🧍 ❤️0
+    🧍 ❤️1 👣(🏹) => 🧍 ❤️0
+
+- The player dies when health points reach zero
+  - SOURCE: \paragraph{Health and survival}
+    "When the health points reach zero, the player dies."
+  - AXIOMS: 🧍 ❤️0 => 🏁
+
+- Health points regenerate over time when the player is not hungry, thirsty, or sleepy
+  - SOURCE: \paragraph{Health and survival}
+    "Health points regenerate over time when the player is not hungry, thirsty, or sleepy."
+  - AXIOMS:
+    🧍 ❤️8 🍽️1 💧1 💤1 ⌛ => 🧍 ❤️9 🍽️1 💧1 💤1
+
+- The game features various resources: saplings, wood, stone, coal, iron, and diamonds
+  - SOURCE: \paragraph{Resources and crafting}
+    "There are many resources, such as saplings, wood, stone, coal, iron, and diamonds,"
+  - AXIOMS: ⏹️ => 🌱 | 🌳 | ⬛ | 🖤 | 🥈 | 💎
+
+- Resources can be collected and used to build tools and place objects
+  - SOURCE: \paragraph{Resources and crafting}
+    "the player can collect in its inventory and use to build tools and place objects in the world."
+  - AXIOMS: PENDING (requires inventory system and crafting logic)
+
+- The game has a technology tree with several levels
+  - SOURCE: \paragraph{Resources and crafting}
+    "Many of the resources require tools that the place must first build from more basic resources, leading to a technology tree with several levels."
+  - AXIOMS: PENDING (requires technology tree implementation)
+
+- Standing near a table enables crafting of wood and stone tools
+  - SOURCE: \paragraph{Resources and crafting}
+    "Standing nearby a table enables the player to craft wood pickaxes and swords, as well as stone pickaxes and stone swords."
+  - AXIOMS:
+    🧍 👣(🧰) 🌳 => 🧍 👣(🧰) 🪓
+    🧍 👣(🧰) 🌳 => 🧍 👣(🧰) 🗡️
+    🧍 👣(🧰) ⬛ => 🧍 👣(🧰) 🪨🪓
+    🧍 👣(🧰) ⬛ => 🧍 👣(🧰) 🪨🗡️
+
+- Crafting a furnace from stone enables crafting of iron tools
+  - SOURCE: \paragraph{Resources and crafting}
+    "Crafting a furnace from stone enables crafting iron pickaxes and iron swords from both iron, coal, and wood."
+  - AXIOMS:
+    🧍 👣(🔥) 🥈 🖤 🌳 => 🧍 👣(🔥) 🥈🪓
+    🧍 👣(🔥) 🥈 🖤 🌳 => 🧍 👣(🔥) 🥈🗡️
+
+- Creatures (zombies, cows, skeletons) are initialized in random locations and move randomly
+  - SOURCE: \paragraph{Creatures and night}
+    "Creatures are initialized in random locations and move randomly."
+  - AXIOMS: PENDING (requires randomization and movement logic)
+
+- Zombies and cows live in grasslands and are automatically spawned and despawned
+  - SOURCE: \paragraph{Creatures and night}
+    "Zombies and cows live in grasslands and are automatically spawned and despawned to ensure a given amount of creatures."
+  - AXIOMS: PENDING (requires spawning and despawning logic)
+
+- At night, the agent's view is restricted and noisy, and more zombies are spawned
+  - SOURCE: \paragraph{Creatures and night}
+    "At night, the agent's view is restricted and noisy and a larger number of zombies is spawned."
+  - AXIOMS: PENDING (requires day/night cycle and vision restriction logic)
+
+- Skeletons live in caves and try to keep distance while shooting arrows at the player
+  - SOURCE: \paragraph{Creatures and night}
+    "Skeletons live in caves and try to keep the player at a distance to shoot arrows at the player."
+  - AXIOMS:
+    ☠️🏹 👁️⬆️3(🧍) => ☠️🏹 🏹⬆️
+    ☠️🏹 👁️⬇️3(🧍) => ☠️🏹 🏹⬇️
+    ☠️🏹 👁️⬅️3(🧍) => ☠️🏹 🏹⬅️
+    ☠️🏹 👁️➡️3(🧍) => ☠️🏹 🏹➡️
+
+- The player can interact with creatures to decrease their health points
+  - SOURCE: \paragraph{Creatures and night}
+    "The player can interact with creatures to decrease their health points."
+  - AXIOMS:
+    🧍 🗡️ 👣(☠️⚔️) => 🧍 🗡️
+    🧍 🗡️ 👣(☠️🏹) => 🧍 🗡️
+
+- Cows move randomly and offer a food source
+  - SOURCE: \paragraph{Creatures and night}
+    "Cows move randomly and offer a food source."
+  - AXIOMS:
+    🐄 ⌛ => 🐄 ⬆️ | 🐄 ⬇️ | 🐄 ⬅️ | 🐄 ➡️
+    🧍 👣(🐄) => 🧍 🍽️9
+
+- The agent receives color images of size 64x64x3 as inputs
+  - SOURCE: \paragraph{Observations}
+    "Agent receive color images of size $64\times64\times3$ as their only inputs."
+  - AXIOMS: PENDING (requires representation of color images)
+
+- The image shows a local top-down view of the map, reaching 4 cells west and east and 3 cells north and south of the player position
+  - SOURCE: \paragraph{Observations}
+    "The image shows a local top-down view of the map, reaching 4 cells west and east and 3 cells north and south of the player position."
+  - AXIOMS: PENDING (requires representation of local view)
+
+- The image includes the current inventory state of the player
+  - SOURCE: \paragraph{Observations}
+    "Below this view of the world, the image shows the current inventory state of the player, including its health points, food, water, and rest levels, collected materials, and crafted tools."
+  - AXIOMS: PENDING (requires inventory representation)
+
+- The action space is a flat categorical space with 17 actions
+  - SOURCE: \paragraph{Actions}
+    "The action space is a flat categorical space with 17 actions, represented by integer indices."
+  - AXIOMS: PENDING (requires action space representation)
+
+- Actions include moving in 4 directions, interacting with objects, sleeping, placing objects, and making tools
+  - SOURCE: \paragraph{Actions}
+    "The actions allow the player to move in all 4 directions along the grid, interact with the object in front of it, go to sleep, place objects, and make tools."
+  - AXIOMS:
+    🧍 ⬆️ => 🧍⬆️
+    🧍 ⬇️ => 🧍⬇️
+    🧍 ⬅️ => 🧍⬅️
+    🧍 ➡️ => 🧍➡️
+    🧍 💤 => 🧍 💤9
+    # Interaction, placing objects, and making tools are PENDING (requires more specific rules)
+
+- Each episode terminates when the player's health points reach 0 or after 10,000 steps
+  - SOURCE: \paragraph{Termination}
+    "Each episode terminates when the player's health points reach 0. This can happen when the player dies out of hunger, thirst, or tiredness, when attacked by a zombie or skeleton, or when falling into lava."
+    "Episodes also end when reaching the time limit of 10,000 steps."
+  - AXIOMS:
+    🧍 ❤️0 => 🏁
+    ⌛10000 => 🏁
+
+- There are 22 achievements that can be unlocked in each episode
+  - SOURCE: figures/achievements/figure.tex
+    startLine: 3
+    endLine: 4
+  - AXIOMS: PENDING (requires achievement system)
+
+- Achievements correspond to semantically meaningful behaviors
+  - SOURCE: \paragraph{Achievements}
+    "The achievements are shown in \cref{fig:achievements} and correspond to semantically meaningful behaviors, such as collecting various resources, building objects and tools, finding food and water, defeating monsters, and waking up safely after sleeping."
+  - AXIOMS: PENDING (requires achievement representation)
+
+- The game provides a sparse reward signal
+  - SOURCE: \paragraph{Reward}
+    "Crafter provides a sparse reward signal that is the sum of two components."
+  - AXIOMS: PENDING (requires reward system)
+
+- A reward of +1 is given for unlocking each achievement for the first time in an episode
+  - SOURCE: \paragraph{Reward}
+    "The main component is a reward of $+1$ every time the agent unlocks each achievement for the first time during the current episode."
+  - AXIOMS: PENDING (requires achievement tracking)
+
+- A reward of -0.1 is given for every health point lost, and +0.1 for every health point regenerated
+  - SOURCE: \paragraph{Reward}
+    "The second component is a reward of $-0.1$ for every health point lost and a reward of $+0.1$ for every health point that is regenerated."
+  - AXIOMS:
+    🧍 ❤️9 ⌛ => 🧍 ❤️8 🏆-0.1
+    🧍 ❤️8 ⌛ => 🧍 ❤️9 🏆0.1
+
+- The maximum number of health points is 9
+  - SOURCE: \paragraph{Reward}
+    "Because the maximum number of health points is 9, the second reward component only affects the first decimal of the episode return,"
+  - AXIOMS: 🧍 ❤️9 ❤️1 => 🧍 ❤️9
+
+- The game is designed to be challenging yet not hopeless for current methods
+  - SOURCE: sections/discussion.tex
+    startLine: 5
+    endLine: 6
+  - AXIOMS: PENDING (requires challenge level design)
+
+- The game is written purely in Python and can be easily extended
+  - SOURCE: sections/discussion.tex
+    startLine: 6
+    endLine: 7
+  - AXIOMS: PENDING (requires Python implementation)
+
+- The game can be installed and played through a human interface
+  - SOURCE: algos/play.tex
+    startLine: 10
+    endLine: 12
+  - AXIOMS: PENDING (requires human interface)
+
+- The game features a day-night cycle
+  - SOURCE: \paragraph{Creatures and night}
+    "At night, the agent's view is restricted and noisy and a larger number of zombies is spawned."
+  - AXIOMS:
+    ☀️ ⌛ => 🌙
+    🌙 ⌛ => ☀️
+
+- The game world includes lava as a hazard
+  - SOURCE: \paragraph{Termination}
+    "This can happen when the player dies out of hunger, thirst, or tiredness, when attacked by a zombie or skeleton, or when falling into lava."
+  - AXIOMS: 🧍 👣(🟥) => 🏁
+
+- The player can grow fruits as a food source
+  - SOURCE: \paragraph{Health and survival}
+    "and are restored by drinking from a lake, chasing cows or growing fruits to eat, and sleeping in places where monsters cannot attack."
+  - AXIOMS:
+    🧍 🌱 ⌛ => 🧍 🍎
+    🧍 🍎 => 🧍 🍽️9
+
+- The game includes a crafting system with different tiers of tools
+  - SOURCE: \paragraph{Resources and crafting}
+    "Standing nearby a table enables the player to craft wood pickaxes and swords, as well as stone pickaxes and stone swords."
+    "Crafting a furnace from stone enables crafting iron pickaxes and iron swords from both iron, coal, and wood."
+  - AXIOMS:
+    🧍 👣(🧰) 🌳 => 🧍 👣(🧰) 🪓
+    🧍 👣(🧰) 🌳 => 🧍 👣(🧰) 🗡️
+    🧍 👣(🧰) ⬛ => 🧍 👣(🧰) 🪨🪓
+    🧍 👣(🧰) ⬛ => 🧍 👣(🧰) 🪨🗡️
+    🧍 👣(🔥) 🥈 🖤 🌳 => 🧍 👣(🔥) 🥈🪓
+    🧍 👣(🔥) 🥈 🖤 🌳 => 🧍 👣(🔥) 🥈🗡️
+
+- The player needs to find safe places to sleep to avoid monster attacks
+  - SOURCE: \paragraph{Health and survival}
+    "and sleeping in places where monsters cannot attack."
+  - AXIOMS:
+    🧍 💤 👣(🟩) ☠️⚔️ => 🧍 ❤️0
+    🧍 💤 👣(🟩) ☠️🏹 => 🧍 ❤️0
+
+- The game environment includes forests with trees
+  - SOURCE: \paragraph{Terrain generation}
+    "Within the areas determined by noise, objects appear with equal probability at any location, such as trees in forests and skeletons in caves."
+  - AXIOMS: 🟩 => 🟩 | 🟩🌳
+
+- The player can place objects in the world
+  - SOURCE: \paragraph{Resources and crafting}
+    "the player can collect in its inventory and use to build tools and place objects in the world."
+  - AXIOMS:
+    🧍 🧰 👣(🟩) => 🧍 👣(🧰)
+    🧍 🔥 👣(🟩) => 🧍 👣(🔥)
+
+- The game uses a top-down perspective for visualization
+  - SOURCE: \paragraph{Observations}
+    "The image shows a local top-down view of the map, reaching 4 cells west and east and 3 cells north and south of the player position."
+  - AXIOMS: PENDING (requires visual representation)
+
+- The player's inventory is visually represented in the game image
+  - SOURCE: \paragraph{Observations}
+    "Below this view of the world, the image shows the current inventory state of the player, including its health points, food, water, and rest levels, collected materials, and crafted tools."
+  - AXIOMS: PENDING (requires inventory visualization)
+
+- The game is designed to evaluate an agent's ability to learn representations from image inputs
+  - SOURCE: sections/intro.tex
+    "Crafter aims to be a fruitful benchmark for reinforcement learning by focusing on the following design goals:"
+    "image observations calls for representation learning"
+  - AXIOMS: PENDING (requires image representation learning)
+
+- The game tests an agent's ability for wide and deep exploration through its technology tree
+  - SOURCE: sections/intro.tex
+    "the technology tree evaluates wide and deep exploration"
+  - AXIOMS: PENDING (requires technology tree exploration)
+
+- The game evaluates long-term reasoning and credit assignment through repeated subtasks and sparse rewards
+  - SOURCE: sections/intro.tex
+    "repeated subtasks and sparse rewards evaluate long-term reasoning and credit assignment."
+  - AXIOMS: PENDING (requires long-term reasoning and credit assignment)
+
+- The game can be used as a benchmark for reinforcement learning research
+  - SOURCE: sections/intro.tex
+    "Crafter is an open world survival game for reinforcement learning research."
+  - AXIOMS: PENDING (requires benchmark design)
+
+- The game mechanics are inspired by Minecraft but simplified for research productivity
+  - SOURCE: sections/intro.tex
+    "The game mechanics are inspired by the popular game Minecraft and were simplified and optimized for research productivity."
+  - AXIOMS: PENDING (requires Minecraft-inspired mechanics)
+
+- The game includes a comparison to human expert performance
+  - SOURCE: tables/success_human.tex
+    "Success rates of human experts on Crafter."
+  - AXIOMS: PENDING (requires human expert comparison)
+
+- The game's score is computed as the geometric mean of success rates for all 22 achievements
+  - SOURCE: figures/scores/figure.tex
+    "Crafter scores are computed as the geometric mean across achievements of their success rates within the budget of 1M environment steps."
+  - AXIOMS: PENDING (requires score computation)
+
+- The game can be used to evaluate both reward-based and unsupervised reinforcement learning algorithms
+  - SOURCE: figures/spectrum/figure-noreward.tex
+    "Agent ability spectrum showing the success rates for Crafter without rewards."
+  - AXIOMS: PENDING (requires algorithm evaluation)
+
+- The game provides a programmatic interface for interaction
+  - SOURCE: algos/loop.tex
+    "Interacting with Crafter programmatically"
+  - AXIOMS: PENDING (requires programmatic interface)
+
+- The player can craft a table using wood
+  - SOURCE: tables/act.tex
+    "Place Table & Wood in inventory."
+  - AXIOMS: 🧍 🌳 => 🧍 🧰
+
+- The player can craft a furnace using stone
+  - SOURCE: tables/act.tex
+    "Place Furnace & Stone in inventory."
+  - AXIOMS: 🧍 ⬛ => 🧍 🔥
+
+- The player can plant saplings to grow trees
+  - SOURCE: tables/act.tex
+    "Place Plant & Sapling in inventory."
+  - AXIOMS:
+    🧍 🌱 👣(🟩) => 🧍 👣(🌱)
+    👣(🌱) ⌛ => 👣(🌳)
+
+- Iron tools require coal in addition to wood and iron to craft
+  - SOURCE: tables/act.tex
+    "Make Iron Pickaxe & Nearby table, furnace; wood, coal, iron an inventory."
+    "Make Iron Sword & Nearby table, furnace; wood, coal, iron in inventory."
+  - AXIOMS:
+    🧍 👣(🧰) 👣(🔥) 🌳 🖤 🥈 => 🧍 👣(🧰) 👣(🔥) 🥈🪓
+    🧍 👣(🧰) 👣(🔥) 🌳 🖤 🥈 => 🧍 👣(🧰) 👣(🔥) 🥈🗡️
+
+- The player needs to be near both a table and a furnace to craft iron tools
+  - SOURCE: tables/act.tex
+    "Make Iron Pickaxe & Nearby table, furnace; wood, coal, iron an inventory."
+    "Make Iron Sword & Nearby table, furnace; wood, coal, iron in inventory."
+  - AXIOMS: (Already covered in the previous rule)
+
+- The player can only sleep when their energy level is below maximum
+  - SOURCE: tables/act.tex
+    "Sleep & Energy level is below maximum."
+  - AXIOMS: 🧍 💤8 💤 => 🧍 💤9
+
+- The player can only move to adjacent flat ground
+  - SOURCE: tables/act.tex
+    "Move Left & Flat ground left to the agent."
+    "Move Right & Flat ground right to the agent."
+    "Move Up & Flat ground above the agent."
+    "Move Down & Flat ground below the agent."
+  - AXIOMS:
+    🧍 ⬅️(🟩) ⬅️ => ⬅️(🧍)
+    🧍 ➡️(🟩) ➡️ => ➡️(🧍)
+    🧍 ⬆️(🟩) ⬆️ => ⬆️(🧍)
+    🧍 ⬇️(🟩) ⬇️ => ⬇️(🧍)
+
+- The player needs to face a creature or material and have the necessary tool to interact with it
+  - SOURCE: tables/act.tex
+    "Do & Facing creature or material; have necessary tool."
+  - AXIOMS:
+    🧍➡️ ➡️(🌳) 🪓 => 🧍➡️ 🌳
+    🧍➡️ ➡️(⬛) 🪓 => 🧍➡️ ⬛
+    🧍➡️ ➡️(🥈) 🥈🪓 => 🧍➡️ 🥈
+
+- Arrows are projectiles used by skeletons
+  - SOURCE: figures/textures/figure.tex
+    "Arrow"
+  - AXIOMS: ☠️🏹 => ☠️🏹 🏹
+
+- The game world includes sand as a terrain type
+  - SOURCE: figures/textures/figure.tex
+    "Sand"
+  - AXIOMS: ⏹️ => 🟨
+
+- The game world includes paths as a terrain feature
+  - SOURCE: figures/textures/figure.tex
+    "Path"
+  - AXIOMS: 
+
