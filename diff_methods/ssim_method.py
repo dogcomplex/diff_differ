@@ -18,10 +18,10 @@ class SSIMMethodBase(BaseDiffMethod):
             ssim_diff = np.stack([ssim_diff] * 3, axis=-1)
         return ssim_diff
 
-    def recreate_screenshot(self, earlier_screenshot, delta, next_screenshot):
+    def recreate_screenshot(self, earlier_screenshot, delta):
         ssim_map = delta.astype(np.float32) / 255.0
         alpha = np.power(ssim_map, 1/self.beta)
-        recreated = ((1 - alpha) * earlier_screenshot + alpha * next_screenshot).clip(0, 255).astype(np.uint8)
+        recreated = ((1 - alpha) * earlier_screenshot).clip(0, 255).astype(np.uint8)
         return recreated
 
     @property
@@ -31,9 +31,10 @@ class SSIMMethodBase(BaseDiffMethod):
     @property
     def config(self):
         return {
-            'diff': 'overwrite',
-            'recreation': 'overwrite'
+            'diff': 'skip',
+            'recreation': 'skip'
         }
+
 
 class SSIMMethod1(SSIMMethodBase):
     def __init__(self):
@@ -42,3 +43,7 @@ class SSIMMethod1(SSIMMethodBase):
 class SSIMMethod2(SSIMMethodBase):
     def __init__(self):
         super().__init__(beta=3.0, threshold=0.15)
+
+class SSIMMethod3(SSIMMethodBase):
+    def __init__(self):
+        super().__init__(beta=5.0, threshold=0.25)

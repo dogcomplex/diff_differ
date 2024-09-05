@@ -6,7 +6,7 @@ class BaseDiffMethod(ABC):
         pass
 
     @abstractmethod
-    def recreate_screenshot(self, earlier_screenshot, delta, next_screenshot):
+    def recreate_screenshot(self, earlier_screenshot, delta):
         pass
 
     @property
@@ -17,4 +17,7 @@ class BaseDiffMethod(ABC):
     @property
     @abstractmethod
     def config(self):
-        pass
+        return {
+            'diff': 'skip',
+            'recreation': 'skip'
+        }

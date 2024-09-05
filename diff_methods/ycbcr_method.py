@@ -9,7 +9,7 @@ class YCbCrMethod(BaseDiffMethod):
         delta = cv2.subtract(img2_ycbcr.astype(np.int16), img1_ycbcr.astype(np.int16))
         return delta
 
-    def recreate_screenshot(self, earlier_screenshot, delta, next_screenshot):
+    def recreate_screenshot(self, earlier_screenshot, delta):
         earlier_ycbcr = cv2.cvtColor(earlier_screenshot, cv2.COLOR_BGR2YCrCb)
         recreated_ycbcr = np.clip(earlier_ycbcr.astype(np.int16) + delta.astype(np.int16), 0, 255).astype(np.uint8)
         recreated = cv2.cvtColor(recreated_ycbcr, cv2.COLOR_YCrCb2BGR)

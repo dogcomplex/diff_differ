@@ -35,7 +35,7 @@ class MembraneMethod(BaseDiffMethod):
         diff = np.clip(diff * 127.5 + 127.5, 0, 255).astype(np.uint8)
         return diff
 
-    def recreate_screenshot(self, earlier_screenshot, delta, next_screenshot):
+    def recreate_screenshot(self, earlier_screenshot, delta):
         mask = np.any(np.abs(delta.astype(np.int16) - 127) > 1, axis=-1)
         recreated = earlier_screenshot.copy()
         recreated[mask] = np.clip(earlier_screenshot[mask].astype(np.float32) + (delta[mask].astype(np.float32) - 127.5) * 2, 0, 255).astype(np.uint8)
@@ -48,6 +48,6 @@ class MembraneMethod(BaseDiffMethod):
     @property
     def config(self):
         return {
-            'diff': 'overwrite',
-            'recreation': 'overwrite'
+            'diff': 'skip',
+            'recreation': 'skip'
         }

@@ -42,12 +42,11 @@ def recreate_screenshots(screenshots_folder, delta_folder, recreated_folder, met
     for i in range(len(delta_files)):
         earlier_screenshot = cv2.imread(os.path.join(screenshots_folder, screenshots[i]))
         delta = cv2.imread(os.path.join(delta_folder, delta_files[i]), cv2.IMREAD_UNCHANGED)
-        next_screenshot = cv2.imread(os.path.join(screenshots_folder, screenshots[i+1]))
         
         output_path = os.path.join(recreated_folder, f"recreated_{i+1:04d}.png")
         
         if not os.path.exists(output_path) or method.config['recreation'] == 'overwrite':
-            recreated = method.recreate_screenshot(earlier_screenshot, delta, next_screenshot)
+            recreated = method.recreate_screenshot(earlier_screenshot, delta)
             cv2.imwrite(output_path, recreated)
     
     print(f"===== EXITING recreate_screenshots ({method_name}) FUNCTION =====")
