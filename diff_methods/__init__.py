@@ -24,6 +24,8 @@ DIFF_METHODS = [
     FeatureBasedMethod(),
     GridDiffMethod(grid_size=9, threshold=10, top_border=0, left_border=0),
     GridDiffMethod(grid_size=9, threshold=10, top_border=3, left_border=3, bottom_border=2, right_border=2),
+    GridDiffMethod(grid_size=9, threshold=10, top_border=4, left_border=4, bottom_border=2, right_border=2),
+    GridDiffMethod(grid_size=9, threshold=10, top_border=2, left_border=3, bottom_border=2, right_border=2),
     AdaptiveRegionDiffMethod(),
 ]
 
