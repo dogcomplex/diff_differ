@@ -34,15 +34,22 @@ def generate_diffs(screenshots_folder, diffs_folder):
             img1 = cv2.imread(os.path.join(screenshots_folder, screenshots[i]))
             img2 = cv2.imread(os.path.join(screenshots_folder, screenshots[i+1]))
             
-            if img1 is None or img2 is None or img1.shape != img2.shape:
-                print(f"Error processing pair {i} and {i+1}")
+            if img1 is None or img2 is None:
+                print(f"Error: Unable to read images {screenshots[i]} or {screenshots[i+1]}")
+                continue
+            
+            if img1.shape != img2.shape:
+                print(f"Error: Images {screenshots[i]} and {screenshots[i+1]} have different shapes. Skipping diff generation.")
                 continue
             
             output_path = os.path.join(delta_folder, f"diff_{method_name}_{i:04d}_{i+1:04d}.png")
             
             if not os.path.exists(output_path) or method.config['diff'] == 'overwrite':
-                delta = method.generate_diff(img1, img2)
-                cv2.imwrite(output_path, delta)
+                try:
+                    delta = method.generate_diff(img1, img2)
+                    cv2.imwrite(output_path, delta)
+                except Exception as e:
+                    print(f"Error generating diff for {screenshots[i]} and {screenshots[i+1]}: {str(e)}")
     
     print("===== EXITING generate_diffs FUNCTION =====")
 
