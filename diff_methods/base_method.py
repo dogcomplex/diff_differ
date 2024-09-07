@@ -19,5 +19,6 @@ class BaseDiffMethod(ABC):
         return {
             'diff': 'skip',
             'recreation': 'skip',
-            'analysis': 'skip'
+            'analysis': 'skip',
+            'tune': False
         }

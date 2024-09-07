@@ -84,16 +84,8 @@ def recreate_screenshots(screenshots_folder, delta_folder, recreated_folder, met
 def process_screenshots():
     print("===== ENTERING process_screenshots FUNCTION =====")
     try:
-        cache_file = 'analysis_cache.json'
-        if os.path.exists(cache_file):
-            try:
-                with open(cache_file, 'r') as f:
-                    cache = json.load(f)
-            except json.JSONDecodeError:
-                print(f"Warning: {cache_file} contains invalid JSON. Starting with an empty cache.")
-                cache = {}
-        else:
-            cache = {}
+        analyses_folder = os.path.join('screenshots', 'analyses')
+        os.makedirs(analyses_folder, exist_ok=True)
 
         generate_diffs(SCREENSHOTS_FOLDER, DIFFS_FOLDER)
         
@@ -104,23 +96,31 @@ def process_screenshots():
             
             recreate_screenshots(SCREENSHOTS_FOLDER, delta_folder, recreated_folder, method_name)
             
-            if method.config['analysis'] == 'skip' and method_name in cache:
+            analysis_file = os.path.join(analyses_folder, f"{method_name}.json")
+            if os.path.exists(analysis_file):
+                with open(analysis_file, 'r') as f:
+                    analysis_cache = json.load(f)
+            else:
+                analysis_cache = {}
+
+            if method.config['analysis'] == 'skip' and 'verification' in analysis_cache and 'high_mse_analysis' in analysis_cache:
                 print(f"Skipping analysis for {method_name} (using cached results)")
                 continue
             
             print(f"Verifying recreation for {method_name} method:")
-            verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder)
+            verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder, method_name)
             
             print(f"\nAnalyzing high MSE frames for {method_name} method:")
-            high_mse_analysis = analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder)
+            cached_high_mse = analysis_cache.get('high_mse_analysis')
+            high_mse_analysis = analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder, cached_result=cached_high_mse)
             
-            cache[method_name] = {
+            analysis_cache.update({
                 'verification': verification_results,
                 'high_mse_analysis': high_mse_analysis
-            }
-        
-        with open(cache_file, 'w') as f:
-            json.dump(cache, f)
+            })
+
+            with open(analysis_file, 'w') as f:
+                json.dump(analysis_cache, f)
 
     except Exception as e:
         print(f"===== ERROR IN process_screenshots: {str(e)} =====")

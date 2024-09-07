@@ -102,17 +102,16 @@ class AdaptiveRegionDiffMethod(BaseDiffMethod):
         
         mask = delta[:,:,3]
         recreated = earlier_screenshot.copy()
-        recreated[mask > 0] = delta[mask > 0, :3]
+        
+        # Only apply changes where the mask is non-zero
+        changed_pixels = mask > 0
+        recreated[changed_pixels] = earlier_screenshot[changed_pixels] + delta[changed_pixels, :3]
+        
+        # Clip values to ensure they're in the valid range for uint8
+        recreated = np.clip(recreated, 0, 255).astype(np.uint8)
+        
         return recreated
 
     @property
     def name(self):
         return f'adaptive_region_diff_n{self.n_segments}_c{self.compactness}_s{self.sigma}_a{self.min_area}_t{self.threshold}_m{self.max_regions}_ct{self.cumulative_threshold}_gt{self.global_threshold}'
-
-    @property
-    def config(self):
-        return {
-            'diff': 'overwrite',
-            'recreation': 'overwrite',
-            'analysis': 'overwrite'
-        }

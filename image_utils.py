@@ -2,9 +2,12 @@ import cv2
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 import os
+import json
+from datetime import datetime
 
-def verify_recreation(screenshots_folder, recreated_folder):
+def verify_recreation(screenshots_folder, recreated_folder, method_name):
     print("===== ENTERING verify_recreation FUNCTION =====")
+    
     screenshots = sorted([f for f in os.listdir(screenshots_folder) if f.endswith('.png')])
     recreated = sorted([f for f in os.listdir(recreated_folder) if f.endswith('.png')])
     
@@ -49,16 +52,36 @@ def verify_recreation(screenshots_folder, recreated_folder):
     
     print("===== EXITING verify_recreation FUNCTION =====")
 
-    results = {
+    return {
         'avg_mse': avg_mse,
         'avg_ssim': avg_ssim,
         'perfect_matches': perfect_matches,
-        'total_comparisons': valid_comparisons
+        'total_comparisons': valid_comparisons,
+        'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S")
     }
-    return results
 
-def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500):
+def get_recent_cache(analyses_folder, method_name, max_age_seconds):
+    cache_files = [f for f in os.listdir(analyses_folder) if f.startswith(f"verify_recreation_{method_name}_") and f.endswith('.json')]
+    if not cache_files:
+        return None
+    
+    cache_files.sort(reverse=True)
+    latest_cache = cache_files[0]
+    cache_path = os.path.join(analyses_folder, latest_cache)
+    
+    file_age = datetime.now().timestamp() - os.path.getmtime(cache_path)
+    if file_age <= max_age_seconds:
+        return cache_path
+    
+    return None
+
+def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500, cached_result=None):
     print("===== ENTERING analyze_high_mse_frames FUNCTION =====")
+    
+    if cached_result:
+        print("Using cached high MSE analysis results")
+        return cached_result
+    
     screenshots = sorted([f for f in os.listdir(screenshots_folder) if f.endswith('.png')])
     recreated = sorted([f for f in os.listdir(recreated_folder) if f.endswith('.png')])
     
@@ -71,12 +94,13 @@ def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500)
         if original is None or recreation is None or original.shape != recreation.shape:
             continue
         
-        mse = np.mean((original.astype(np.float32) - recreation.astype(np.float32)) ** 2)
+        mse = float(np.mean((original.astype(np.float32) - recreation.astype(np.float32)) ** 2))
         
         if mse > threshold:
             high_mse_frames.append((i, mse))
     
     print(f"Found {len(high_mse_frames)} frames with MSE > {threshold}")
+    detailed_analysis = []
     for frame, mse in high_mse_frames[:10]:
         print(f"Frame {frame}: MSE = {mse:.2f}")
         
@@ -84,19 +108,28 @@ def analyze_high_mse_frames(screenshots_folder, recreated_folder, threshold=500)
         recreation = cv2.imread(os.path.join(recreated_folder, recreated[frame-1]))
         diff = cv2.absdiff(original, recreation)
         
-        changed_pixels = np.sum(diff > 0) / (diff.shape[0] * diff.shape[1] * diff.shape[2]) * 100
+        changed_pixels = float(np.sum(diff > 0) / (diff.shape[0] * diff.shape[1] * diff.shape[2]) * 100)
         print(f"  Changed pixels: {changed_pixels:.2f}%")
         
+        channel_changes = []
         for c, color in enumerate(['Blue', 'Green', 'Red']):
             channel_diff = diff[:,:,c]
-            channel_changed = np.sum(channel_diff > 0) / (channel_diff.shape[0] * channel_diff.shape[1]) * 100
+            channel_changed = float(np.sum(channel_diff > 0) / (channel_diff.shape[0] * channel_diff.shape[1]) * 100)
             print(f"  {color} channel changes: {channel_changed:.2f}%")
+            channel_changes.append((color, channel_changed))
+        
+        detailed_analysis.append({
+            'frame': frame,
+            'mse': mse,
+            'changed_pixels': changed_pixels,
+            'channel_changes': channel_changes
+        })
     
     print("===== EXITING analyze_high_mse_frames FUNCTION =====")
 
     results = {
         'high_mse_count': len(high_mse_frames),
         'threshold': threshold,
-        'detailed_analysis': high_mse_frames[:10]
+        'detailed_analysis': detailed_analysis
     }
     return results
