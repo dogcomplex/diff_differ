@@ -65,3 +65,11 @@ class GridDiffMethod(BaseDiffMethod):
     def name(self):
         return f'grid_diff_{self.grid_size}x{self.grid_size}_t{self.threshold}_tb{self.top_border}_lb{self.left_border}_bb{self.bottom_border}_rb{self.right_border}'
 
+    @property
+    def config(self):
+        return {
+            'diff': 'skip',
+            'recreation': 'skip',
+            'analysis': 'skip',
+            'tune': True
+        }

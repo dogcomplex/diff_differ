@@ -89,6 +89,9 @@ def process_screenshots():
 
         generate_diffs(SCREENSHOTS_FOLDER, DIFFS_FOLDER)
         
+        summary = []
+        summary_tuned = []
+
         for method_name, method in METHOD_DICT.items():
             print(f"\nProcessing {method_name} method:")
             delta_folder = os.path.join(DIFFS_FOLDER, f"delta_{method_name}")
@@ -105,23 +108,52 @@ def process_screenshots():
 
             if method.config['analysis'] == 'skip' and 'verification' in analysis_cache and 'high_mse_analysis' in analysis_cache:
                 print(f"Skipping analysis for {method_name} (using cached results)")
-                continue
-            
-            print(f"Verifying recreation for {method_name} method:")
-            verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder, method_name)
-            
-            print(f"\nAnalyzing high MSE frames for {method_name} method:")
-            cached_high_mse = analysis_cache.get('high_mse_analysis')
-            high_mse_analysis = analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder, cached_result=cached_high_mse)
-            
-            analysis_cache.update({
-                'verification': verification_results,
-                'high_mse_analysis': high_mse_analysis
-            })
+                verification_results = analysis_cache['verification']
+                high_mse_analysis = analysis_cache['high_mse_analysis']
+            else:
+                print(f"Verifying recreation for {method_name} method:")
+                verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder, method_name)
+                
+                print(f"\nAnalyzing high MSE frames for {method_name} method:")
+                cached_high_mse = analysis_cache.get('high_mse_analysis')
+                high_mse_analysis = analyze_high_mse_frames(SCREENSHOTS_FOLDER, recreated_folder, cached_result=cached_high_mse)
+                
+                analysis_cache.update({
+                    'verification': verification_results,
+                    'high_mse_analysis': high_mse_analysis
+                })
 
-            with open(analysis_file, 'w') as f:
-                json.dump(analysis_cache, f)
+                with open(analysis_file, 'w') as f:
+                    json.dump(analysis_cache, f)
+
+            summary_entry = generate_summary_entry(method_name, verification_results, high_mse_analysis)
+            summary.append(summary_entry)
+
+            if method.config['tune']:
+                summary_tuned.append(summary_entry)
+
+        write_summary('summary.txt', summary)
+        write_summary('summary_tuned.txt', summary_tuned)
 
     except Exception as e:
         print(f"===== ERROR IN process_screenshots: {str(e)} =====")
     print("===== EXITING process_screenshots FUNCTION =====")
+
+def generate_summary_entry(method_name, verification_results, high_mse_analysis):
+    summary = f"Method: {method_name}\n"
+    summary += f"Average MSE: {verification_results['avg_mse']:.2f}\n"
+    summary += f"Average SSIM: {verification_results['avg_ssim']:.4f}\n"
+    summary += f"Perfect matches: {verification_results['perfect_matches']}/{verification_results['total_comparisons']} ({verification_results['perfect_matches']/verification_results['total_comparisons']*100:.2f}%)\n"
+    summary += f"High MSE frames: {high_mse_analysis['high_mse_count']} (threshold: {high_mse_analysis['threshold']})\n"
+    
+    if high_mse_analysis['detailed_analysis']:
+        summary += "Top 3 high MSE frames:\n"
+        for frame in high_mse_analysis['detailed_analysis'][:3]:
+            summary += f"  Frame {frame['frame']}: MSE = {frame['mse']:.2f}, Changed pixels: {frame['changed_pixels']:.2f}%\n"
+    
+    return summary
+
+def write_summary(filename, summary_entries):
+    with open(os.path.join('screenshots', 'analyses', filename), 'w') as f:
+        f.write("\n\n".join(summary_entries))
+    print(f"Summary written to {filename}")
