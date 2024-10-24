@@ -166,18 +166,39 @@ def process_screenshots():
 
 def generate_summary_entry(method_name, verification_results, verification_reversed_results, high_mse_analysis):
     summary = f"Method: {method_name}\n"
-    summary += f"Forward - Average MSE: {float(verification_results['avg_mse']):.2f}\n"
-    summary += f"Forward - Average SSIM: {verification_results['avg_ssim']:.4f}\n"
-    summary += f"Forward - Perfect matches: {verification_results['perfect_matches']}/{verification_results['total_comparisons']} ({verification_results['perfect_matches']/verification_results['total_comparisons']*100:.2f}%)\n"
-    summary += f"Reverse - Average MSE: {verification_reversed_results['avg_mse']:.2f}\n"
-    summary += f"Reverse - Average SSIM: {verification_reversed_results['avg_ssim']:.4f}\n"
-    summary += f"Reverse - Perfect matches: {verification_reversed_results['perfect_matches']}/{verification_reversed_results['total_comparisons']} ({verification_reversed_results['perfect_matches']/verification_reversed_results['total_comparisons']*100:.2f}%)\n"
-    summary += f"High MSE frames: {high_mse_analysis['high_mse_count']} (threshold: {high_mse_analysis['threshold']})\n"
     
-    if high_mse_analysis['detailed_analysis']:
-        summary += "Top 3 high MSE frames:\n"
-        for frame in high_mse_analysis['detailed_analysis'][:3]:
-            summary += f"  Frame {frame['frame']}: MSE = {frame['mse']:.2f}, Changed pixels: {frame['changed_pixels']:.2f}%\n"
+    # Forward verification results
+    if verification_results:
+        summary += f"Forward - Average MSE: {float(verification_results.get('avg_mse', 0)):.2f}\n"
+        summary += f"Forward - Average SSIM: {verification_results.get('avg_ssim', 0):.4f}\n"
+        total_comparisons = verification_results.get('total_comparisons', 1)
+        perfect_matches = verification_results.get('perfect_matches', 0)
+        percentage = (perfect_matches / total_comparisons * 100) if total_comparisons > 0 else 0
+        summary += f"Forward - Perfect matches: {perfect_matches}/{total_comparisons} ({percentage:.2f}%)\n"
+    else:
+        summary += "Forward verification results not available\n"
+    
+    # Reverse verification results
+    if verification_reversed_results:
+        summary += f"Reverse - Average MSE: {float(verification_reversed_results.get('avg_mse', 0)):.2f}\n"
+        summary += f"Reverse - Average SSIM: {verification_reversed_results.get('avg_ssim', 0):.4f}\n"
+        total_comparisons = verification_reversed_results.get('total_comparisons', 1)
+        perfect_matches = verification_reversed_results.get('perfect_matches', 0)
+        percentage = (perfect_matches / total_comparisons * 100) if total_comparisons > 0 else 0
+        summary += f"Reverse - Perfect matches: {perfect_matches}/{total_comparisons} ({percentage:.2f}%)\n"
+    else:
+        summary += "Reverse verification results not available\n"
+    
+    # High MSE analysis
+    if high_mse_analysis:
+        summary += f"High MSE frames: {high_mse_analysis.get('high_mse_count', 0)} (threshold: {high_mse_analysis.get('threshold', 0)})\n"
+        
+        if high_mse_analysis.get('detailed_analysis'):
+            summary += "Top 3 high MSE frames:\n"
+            for frame in high_mse_analysis['detailed_analysis'][:3]:
+                summary += f"  Frame {frame.get('frame', 'N/A')}: MSE = {float(frame.get('mse', 0)):.2f}, Changed pixels: {float(frame.get('changed_pixels', 0)):.2f}%\n"
+    else:
+        summary += "High MSE analysis not available\n"
     
     return summary
 

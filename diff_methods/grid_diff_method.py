@@ -74,8 +74,8 @@ class GridDiffMethod(BaseDiffMethod):
     def config(self):
         return {
             'diff': 'skip',
-            'recreation': 'overwrite',
-            'analysis': 'overwrite',
+            'recreation': 'skip',
+            'analysis': 'skip',
             'tune': True
         }
 

@@ -142,7 +142,14 @@ def verify_reversed_recreation(screenshots_folder, recreated_reversed_folder, me
     
     if len(screenshots) != len(recreated_reversed) + 1:
         print(f"Mismatch in number of screenshots: Original {len(screenshots)}, Recreated Reversed {len(recreated_reversed)}")
-        return
+        return {
+            'method': method_name,
+            'avg_mse': 0,
+            'avg_ssim': 0,
+            'perfect_matches': 0,
+            'total_comparisons': 0,
+            'error': 'Mismatch in number of screenshots'
+        }
     
     total_mse = 0
     total_ssim = 0
