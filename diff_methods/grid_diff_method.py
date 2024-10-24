@@ -36,11 +36,10 @@ class GridDiffMethod(BaseDiffMethod):
                     diff[y1:y2, x1:x2] = img2[y1:y2, x1:x2]
                     mask[y1:y2, x1:x2] = 255
 
-        # Combine diff and mask into a 4-channel image (BGRA)
         diff_with_alpha = np.dstack((diff, mask))
         return diff_with_alpha
 
-    def recreate_screenshot(self, earlier_screenshot, delta):
+    def recreate_screenshot(self, earlier_screenshot, delta, reverse=False):
         h, w = earlier_screenshot.shape[:2]
         effective_h = h - self.top_border - self.bottom_border
         effective_w = w - self.left_border - self.right_border
@@ -48,6 +47,9 @@ class GridDiffMethod(BaseDiffMethod):
 
         recreated = earlier_screenshot.copy()
         mask = delta[:,:,3]  # Alpha channel of the delta
+
+        if reverse:
+            delta = self.reverse_diff(delta)
 
         for i in range(self.grid_size):
             for j in range(self.grid_size):
@@ -59,7 +61,10 @@ class GridDiffMethod(BaseDiffMethod):
                 if np.mean(mask[y1:y2, x1:x2]) > 127:
                     recreated[y1:y2, x1:x2] = delta[y1:y2, x1:x2, :3]
 
-        return recreated
+        return np.clip(recreated, 0, 255).astype(np.uint8)
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, delta, reverse=True)
 
     @property
     def name(self):
@@ -69,7 +74,13 @@ class GridDiffMethod(BaseDiffMethod):
     def config(self):
         return {
             'diff': 'skip',
-            'recreation': 'skip',
-            'analysis': 'skip',
+            'recreation': 'overwrite',
+            'analysis': 'overwrite',
             'tune': True
         }
+
+    def reverse_diff(self, delta):
+        reversed_delta = np.zeros_like(delta)
+        reversed_delta[:,:,:3] = 255 - delta[:,:,:3]
+        reversed_delta[:,:,3] = delta[:,:,3]
+        return reversed_delta

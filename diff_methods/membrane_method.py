@@ -45,3 +45,6 @@ class MembraneMethod(BaseDiffMethod):
     def name(self):
         return 'membrane'
 
+    def reverse_diff(self, delta):
+        return 255 - delta
+

@@ -15,6 +15,12 @@ class YCbCrMethod(BaseDiffMethod):
         recreated = cv2.cvtColor(recreated_ycbcr, cv2.COLOR_YCrCb2BGR)
         return recreated
 
+    def reverse_diff(self, delta):
+        return -delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))
+
     @property
     def name(self):
         return 'ycbcr'

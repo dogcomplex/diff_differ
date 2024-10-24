@@ -4,52 +4,46 @@ import numpy as np
 import json
 from config import *
 from diff_methods import METHOD_DICT
-from image_utils import verify_recreation, analyze_high_mse_frames
+from image_utils import verify_recreation, verify_reversed_recreation, analyze_high_mse_frames
 
 def generate_diffs(screenshots_folder, diffs_folder):
     print("===== ENTERING generate_diffs FUNCTION =====")
     screenshots = sorted([f for f in os.listdir(screenshots_folder) if f.endswith('.png')])
     
-    if len(screenshots) < 2:
-        print("Not enough screenshots to generate diffs.")
-        return
-
-    last_screenshot_pair = (screenshots[-2], screenshots[-1])
-    
     for method_name, method in METHOD_DICT.items():
-        delta_folder = os.path.join(diffs_folder, f"delta_{method_name}")
-        os.makedirs(delta_folder, exist_ok=True)
+        print(f"Processing {method_name}... (Conflict policy: {method.config['diff']})")
+        method_diffs_folder = os.path.join(diffs_folder, method_name)
+        method_recreations_folder = os.path.join(RECREATIONS_FOLDER, method_name)
+        method_recreations_reversed_folder = os.path.join(RECREATIONS_FOLDER, f"{method_name}_reversed")
         
-        # Check if the last diff file exists
-        last_diff_filename = f"diff_{method_name}_{len(screenshots)-2:04d}_{len(screenshots)-1:04d}.png"
-        last_diff_path = os.path.join(delta_folder, last_diff_filename)
+        os.makedirs(method_diffs_folder, exist_ok=True)
+        os.makedirs(method_recreations_folder, exist_ok=True)
+        os.makedirs(method_recreations_reversed_folder, exist_ok=True)
         
-        if os.path.exists(last_diff_path) and method.config['diff'] != 'overwrite':
-            print(f"Skipping diff generation for {method_name} (last diff file exists)")
+        # Check if the last diff file exists as a shortcut for skipping
+        last_diff_file = os.path.join(method_diffs_folder, f"diff_{len(screenshots)-2:04d}.png")
+        if os.path.exists(last_diff_file) and method.config['diff'] == 'skip':
+            print(f"Skipping entire batch for {method_name} (last diff file exists)")
             continue
         
-        print(f"Now generating diffs for: {method_name}")
-        
         for i in range(len(screenshots) - 1):
+            diff_file = os.path.join(method_diffs_folder, f"diff_{i:04d}.png")
+            
+            # Skip if the diff file exists and analysis is set to 'skip'
+            if os.path.exists(diff_file) and method.config['analysis'] == 'skip':
+                continue
+            
             img1 = cv2.imread(os.path.join(screenshots_folder, screenshots[i]))
             img2 = cv2.imread(os.path.join(screenshots_folder, screenshots[i+1]))
             
-            if img1 is None or img2 is None:
-                print(f"Error: Unable to read images {screenshots[i]} or {screenshots[i+1]}")
-                continue
+            diff = method.generate_diff(img1, img2)
+            cv2.imwrite(diff_file, diff)
             
-            if img1.shape != img2.shape:
-                print(f"Error: Images {screenshots[i]} and {screenshots[i+1]} have different shapes. Skipping diff generation.")
-                continue
+            recreated = method.recreate_screenshot(img1, diff)
+            cv2.imwrite(os.path.join(method_recreations_folder, f"recreated_{i+1:04d}.png"), recreated)
             
-            output_path = os.path.join(delta_folder, f"diff_{method_name}_{i:04d}_{i+1:04d}.png")
-            
-            if not os.path.exists(output_path) or method.config['diff'] == 'overwrite':
-                try:
-                    delta = method.generate_diff(img1, img2)
-                    cv2.imwrite(output_path, delta)
-                except Exception as e:
-                    print(f"Error generating diff for {screenshots[i]} and {screenshots[i+1]}: {str(e)}")
+            recreated_reversed = method.recreate_previous_screenshot(img2, diff)
+            cv2.imwrite(os.path.join(method_recreations_reversed_folder, f"recreated_reversed_{i:04d}.png"), recreated_reversed)
     
     print("===== EXITING generate_diffs FUNCTION =====")
 
@@ -96,23 +90,31 @@ def process_screenshots():
             print(f"\nProcessing {method_name} method:")
             delta_folder = os.path.join(DIFFS_FOLDER, f"delta_{method_name}")
             recreated_folder = os.path.join(RECREATIONS_FOLDER, method_name)
+            recreated_reversed_folder = os.path.join(RECREATIONS_FOLDER, f"{method_name}_reversed")
             
             recreate_screenshots(SCREENSHOTS_FOLDER, delta_folder, recreated_folder, method_name)
             
             analysis_file = os.path.join(analyses_folder, f"{method_name}.json")
+            analysis_cache = {}
             if os.path.exists(analysis_file):
-                with open(analysis_file, 'r') as f:
-                    analysis_cache = json.load(f)
-            else:
-                analysis_cache = {}
+                try:
+                    with open(analysis_file, 'r') as f:
+                        analysis_cache = json.load(f)
+                except json.JSONDecodeError as e:
+                    print(f"Error reading JSON from {analysis_file}: {str(e)}")
+                    print("Continuing with empty analysis cache.")
 
-            if method.config['analysis'] == 'skip' and 'verification' in analysis_cache and 'high_mse_analysis' in analysis_cache:
+            if method.config['analysis'] == 'skip' and 'verification' in analysis_cache and 'verification_reversed' in analysis_cache and 'high_mse_analysis' in analysis_cache:
                 print(f"Skipping analysis for {method_name} (using cached results)")
                 verification_results = analysis_cache['verification']
+                verification_reversed_results = analysis_cache['verification_reversed']
                 high_mse_analysis = analysis_cache['high_mse_analysis']
             else:
                 print(f"Verifying recreation for {method_name} method:")
                 verification_results = verify_recreation(SCREENSHOTS_FOLDER, recreated_folder, method_name)
+                
+                print(f"Verifying reversed recreation for {method_name} method:")
+                verification_reversed_results = verify_reversed_recreation(SCREENSHOTS_FOLDER, recreated_reversed_folder, method_name)
                 
                 print(f"\nAnalyzing high MSE frames for {method_name} method:")
                 cached_high_mse = analysis_cache.get('high_mse_analysis')
@@ -120,30 +122,56 @@ def process_screenshots():
                 
                 analysis_cache.update({
                     'verification': verification_results,
+                    'verification_reversed': verification_reversed_results,
                     'high_mse_analysis': high_mse_analysis
                 })
 
-                with open(analysis_file, 'w') as f:
-                    json.dump(analysis_cache, f)
+                try:
+                    with open(analysis_file, 'w') as f:
+                        json.dump(analysis_cache, f, indent=2, default=float)
+                except TypeError as e:
+                    print(f"Error writing JSON to {analysis_file}: {str(e)}")
+                    print("Attempting to serialize with default=str...")
+                    try:
+                        with open(analysis_file, 'w') as f:
+                            json.dump(analysis_cache, f, indent=2, default=str)
+                    except Exception as e:
+                        print(f"Failed to serialize with default=str: {str(e)}")
 
-            summary_entry = generate_summary_entry(method_name, verification_results, high_mse_analysis)
+            summary_entry = generate_summary_entry(method_name, verification_results, verification_reversed_results, high_mse_analysis)
             summary.append(summary_entry)
 
             if method.config['tune']:
                 summary_tuned.append(summary_entry)
 
-        write_summary('summary.txt', summary)
-        write_summary('summary_tuned.txt', summary_tuned)
+        try:
+            write_summary('summary.txt', summary)
+            write_summary('summary_tuned.txt', summary_tuned)
+        except TypeError as e:
+            print(f"Error during JSON serialization: {str(e)}")
+            print("Attempting to serialize with default=str...")
+            try:
+                with open('summary.txt', 'w') as f:
+                    json.dump(summary, f, indent=2, default=str)
+                with open('summary_tuned.txt', 'w') as f:
+                    json.dump(summary_tuned, f, indent=2, default=str)
+            except Exception as e:
+                print(f"Failed to serialize with default=str: {str(e)}")
 
     except Exception as e:
         print(f"===== ERROR IN process_screenshots: {str(e)} =====")
+        import traceback
+        traceback.print_exc()
     print("===== EXITING process_screenshots FUNCTION =====")
 
-def generate_summary_entry(method_name, verification_results, high_mse_analysis):
+def generate_summary_entry(method_name, verification_results, verification_reversed_results, high_mse_analysis):
     summary = f"Method: {method_name}\n"
-    summary += f"Average MSE: {verification_results['avg_mse']:.2f}\n"
-    summary += f"Average SSIM: {verification_results['avg_ssim']:.4f}\n"
-    summary += f"Perfect matches: {verification_results['perfect_matches']}/{verification_results['total_comparisons']} ({verification_results['perfect_matches']/verification_results['total_comparisons']*100:.2f}%)\n"
+    summary += f"Forward - Average MSE: {float(verification_results['avg_mse']):.2f}\n"
+    summary += f"Forward - Average SSIM: {verification_results['avg_ssim']:.4f}\n"
+    summary += f"Forward - Perfect matches: {verification_results['perfect_matches']}/{verification_results['total_comparisons']} ({verification_results['perfect_matches']/verification_results['total_comparisons']*100:.2f}%)\n"
+    summary += f"Reverse - Average MSE: {verification_reversed_results['avg_mse']:.2f}\n"
+    summary += f"Reverse - Average SSIM: {verification_reversed_results['avg_ssim']:.4f}\n"
+    summary += f"Reverse - Perfect matches: {verification_reversed_results['perfect_matches']}/{verification_reversed_results['total_comparisons']} ({verification_reversed_results['perfect_matches']/verification_reversed_results['total_comparisons']*100:.2f}%)\n"
     summary += f"High MSE frames: {high_mse_analysis['high_mse_count']} (threshold: {high_mse_analysis['threshold']})\n"
     
     if high_mse_analysis['detailed_analysis']:

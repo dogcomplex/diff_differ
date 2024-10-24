@@ -51,6 +51,24 @@ class FeatureBasedMethod(BaseDiffMethod):
         
         return recreated
 
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))
+
+    def reverse_diff(self, delta):
+        reversed_diff = np.zeros_like(delta)
+        mask = delta[:,:,3]  # Alpha channel
+        reversed_diff[:,:,3] = mask  # Keep the same mask
+
+        matches = self.bf.match(self.descriptors2, self.descriptors1)  # Note the order change
+        
+        for match in matches:
+            pt2 = tuple(map(int, self.keypoints2[match.queryIdx].pt))
+            pt1 = tuple(map(int, self.keypoints1[match.trainIdx].pt))
+            if mask[pt1[1], pt1[0]] > 0:
+                reversed_diff[pt1[1], pt1[0], :3] = delta[pt2[1], pt2[0], :3]
+
+        return reversed_diff
+
     @property
     def name(self):
         return 'feature_based'

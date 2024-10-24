@@ -39,6 +39,24 @@ class SuperpixelMethod(BaseDiffMethod):
         recreated[mask] = np.clip(earlier_screenshot[mask].astype(np.float32) + (delta[mask].astype(np.float32) - 127.5) * 2, 0, 255).astype(np.uint8)
         return recreated
 
+    def reverse_diff(self, delta):
+        reversed_delta = np.zeros_like(delta)
+        mask = np.any(np.abs(delta.astype(np.int16) - 127) > 1, axis=-1)
+        reversed_delta[mask] = 255 - delta[mask]
+        return reversed_delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))
+
     @property
     def name(self):
         return 'superpixel'
+    
+    @property
+    def config(self):
+        return {
+            'diff': 'skip',
+            'recreation': 'overwrite',
+            'analysis': 'overwrite',
+            'tune': False
+        }

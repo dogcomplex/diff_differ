@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 
 class BaseDiffMethod(ABC):
     @abstractmethod
@@ -18,7 +19,17 @@ class BaseDiffMethod(ABC):
     def config(self):
         return {
             'diff': 'skip',
-            'recreation': 'skip',
-            'analysis': 'skip',
+            'recreation': 'overwrite',
+            'analysis': 'overwrite',
             'tune': False
         }
+
+    def reverse_diff(self, delta):
+        # Default implementation: invert the delta
+        if delta.dtype == np.uint8:
+            return 255 - delta
+        else:
+            return -delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))

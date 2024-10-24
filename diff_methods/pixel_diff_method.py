@@ -8,10 +8,22 @@ class PixelDiffMethod(BaseDiffMethod):
         return delta
 
     def recreate_screenshot(self, earlier_screenshot, delta):
-        recreated = np.clip(earlier_screenshot.astype(np.int16) + delta.astype(np.int16), 0, 255).astype(np.uint8)
+        recreated = np.clip(earlier_screenshot.astype(np.int16) + delta, 0, 255).astype(np.uint8)
         return recreated
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return np.clip(later_screenshot.astype(np.int16) - delta, 0, 255).astype(np.uint8)
 
     @property
     def name(self):
         return 'pixel_diff'
+    
+    @property
+    def config(self):
+        return {
+            'diff': 'skip',
+            'recreation': 'skip',
+            'analysis': 'skip',
+            'tune': False
+        }
 

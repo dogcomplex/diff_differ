@@ -21,7 +21,17 @@ class SSIMMethodBase(BaseDiffMethod):
     def recreate_screenshot(self, earlier_screenshot, delta):
         ssim_map = delta.astype(np.float32) / 255.0
         alpha = np.power(ssim_map, 1/self.beta)
-        recreated = ((1 - alpha) * earlier_screenshot).clip(0, 255).astype(np.uint8)
+        recreated = ((1 - alpha) * earlier_screenshot + alpha * 255).clip(0, 255).astype(np.uint8)
+        return recreated
+
+    def reverse_diff(self, delta):
+        # For SSIM, the reverse diff is the same as the forward diff
+        return delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        ssim_map = delta.astype(np.float32) / 255.0
+        alpha = np.power(ssim_map, 1/self.beta)
+        recreated = ((1 - alpha) * later_screenshot).clip(0, 255).astype(np.uint8)
         return recreated
 
     @property

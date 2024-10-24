@@ -112,6 +112,14 @@ class AdaptiveRegionDiffMethod(BaseDiffMethod):
         
         return recreated
 
+    def reverse_diff(self, delta):
+        reversed_delta = delta.copy()
+        reversed_delta[:,:,:3] = -delta[:,:,:3]
+        return reversed_delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))
+
     @property
     def name(self):
         return f'adaptive_region_diff_n{self.n_segments}_c{self.compactness}_s{self.sigma}_a{self.min_area}_t{self.threshold}_m{self.max_regions}_ct{self.cumulative_threshold}_gt{self.global_threshold}'

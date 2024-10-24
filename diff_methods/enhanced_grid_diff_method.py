@@ -78,6 +78,15 @@ class EnhancedGridDiffMethod(BaseDiffMethod):
 
         return recreated
 
+    def reverse_diff(self, delta):
+        reversed_delta = np.zeros_like(delta)
+        reversed_delta[:,:,3] = delta[:,:,3]  # Keep the same mask
+        reversed_delta[:,:,:3] = 255 - delta[:,:,:3]  # Invert the color channels
+        return reversed_delta
+
+    def recreate_previous_screenshot(self, later_screenshot, delta):
+        return self.recreate_screenshot(later_screenshot, self.reverse_diff(delta))
+
     @property
     def name(self):
         return f'enhanced_grid_diff_{self.grid_size}x{self.grid_size}_t{self.base_threshold}_tb{self.top_border}_lb{self.left_border}_bb{self.bottom_border}_rb{self.right_border}_o{self.overlap}_dt{int(self.use_dynamic_threshold)}_at{int(self.use_adaptive_threshold)}'

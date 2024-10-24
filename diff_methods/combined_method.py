@@ -19,6 +19,9 @@ class CombinedMethod(BaseDiffMethod):
         recreated_ycbcr = np.dstack((recreated_y, recreated_cb, recreated_cr))
         return cv2.cvtColor(recreated_ycbcr, cv2.COLOR_YCrCb2BGR)
 
+    def reverse_diff(self, delta):
+        return -delta
+
     @property
     def name(self):
         return 'combined'
