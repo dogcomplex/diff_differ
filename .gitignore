@@ -1,0 +1,24 @@
+# Ignore everything
+*
+
+# But not these files...
+!*.py
+!*.md
+!*.txt
+!*.mp4
+!*.json
+!.gitignore
+!LICENSE
+
+!/axioms/
+!/axioms/**
+# But still ignore .pyc files in the axioms folder
+/axioms/**/*.pyc
+
+!/diff_methods/
+!/diff_methods/**
+/diff_methods/**/*.pyc
+
+
+
+
